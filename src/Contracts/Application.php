@@ -8,16 +8,10 @@
 
 namespace Doraemons\DependencyInjection\Contracts;
 
+use Doraemons\DependencyInjection\ServiceProvider;
 
 interface Application
 {
-    /**
-     * Determine if the application is currently down for maintenance.
-     *
-     * @return bool
-     */
-    public function isDownForMaintenance();
-
     /**
      * Register a service provider with the application.
      *
@@ -59,18 +53,4 @@ interface Application
      * @return void
      */
     public function booted($callback);
-
-    /**
-     * Get the path to the cached "compiled.php" file.
-     *
-     * @return string
-     */
-    public function getCachedCompilePath();
-
-    /**
-     * Get the path to the cached services.php file.
-     *
-     * @return string
-     */
-    public function getCachedServicesPath();
 }

@@ -9,29 +9,15 @@
 namespace Doraemons\DependencyInjection;
 
 use Closure;
-use RuntimeException;
+use Doraemons\Events\Contracts\Dispatcher;
+use Doraemons\Events\EventDispatcher;
 use Doraemons\Tools\Arr;
-use Doraemons\Tools\Str;
 use Doraemons\DependencyInjection\Contracts\Application as ApplicationContracts;
 use Doraemons\Container\Container;
 use Doraemons\Events\EventServiceProvider;
 
 class Application extends Container implements ApplicationContracts
 {
-    /**
-     * The Laravel framework version.
-     *
-     * @var string
-     */
-    const VERSION = '5.2.31';
-
-    /**
-     * The base path for the Laravel installation.
-     *
-     * @var string
-     */
-    protected $basePath;
-
     /**
      * Indicates if the application has been bootstrapped before.
      *
@@ -61,13 +47,6 @@ class Application extends Container implements ApplicationContracts
     protected $bootedCallbacks = [];
 
     /**
-     * The array of terminating callbacks.
-     *
-     * @var array
-     */
-    protected $terminatingCallbacks = [];
-
-    /**
      * All of the registered service providers.
      *
      * @var array
@@ -89,22 +68,7 @@ class Application extends Container implements ApplicationContracts
     protected $deferredServices = [];
 
     /**
-     * A custom callback used to configure Monolog.
-     *
-     * @var callable|null
-     */
-    protected $monologConfigurator;
-
-    /**
-     * The application namespace.
-     *
-     * @var string
-     */
-    protected $namespace = null;
-
-    /**
-     * Create a new Illuminate application instance.
-     *
+     * Create a new application instance.
      */
     public function __construct()
     {
@@ -113,16 +77,6 @@ class Application extends Container implements ApplicationContracts
         $this->registerBaseServiceProviders();
 
         $this->registerCoreContainerAliases();
-    }
-
-    /**
-     * Get the version number of the application.
-     *
-     * @return string
-     */
-    public function version()
-    {
-        return static::VERSION;
     }
 
     /**
@@ -201,30 +155,7 @@ class Application extends Container implements ApplicationContracts
     {
         return $this->hasBeenBootstrapped;
     }
-
-    /**
-     * Determine if we are running in the console.
-     *
-     * @return bool
-     */
-    public function runningInConsole()
-    {
-        return php_sapi_name() == 'cli';
-    }
-
-//    /**
-//     * Register all of the configured providers.
-//     *
-//     * @return void
-//     */
-//    public function registerConfiguredProviders()
-//    {
-//        $manifestPath = $this->getCachedServicesPath();
-//
-//        (new ProviderRepository($this, new Filesystem, $manifestPath))
-//            ->load($this->config['app.providers']);
-//    }
-
+    
     /**
      * Register a service provider with the application.
      *
@@ -296,7 +227,7 @@ class Application extends Container implements ApplicationContracts
     /**
      * Mark the given provider as registered.
      *
-     * @param  \Illuminate\Support\ServiceProvider  $provider
+     * @param  ServiceProvider  $provider
      * @return void
      */
     protected function markAsRegistered($provider)
@@ -493,82 +424,6 @@ class Application extends Container implements ApplicationContracts
     }
 
     /**
-     * Determine if middleware has been disabled for the application.
-     *
-     * @return bool
-     */
-    public function shouldSkipMiddleware()
-    {
-        return $this->bound('middleware.disable') &&
-        $this->make('middleware.disable') === true;
-    }
-
-    /**
-     * Determine if the application configuration is cached.
-     *
-     * @return bool
-     */
-    public function configurationIsCached()
-    {
-        return file_exists($this->getCachedConfigPath());
-    }
-
-    /**
-     * Get the path to the configuration cache file.
-     *
-     * @return string
-     */
-    public function getCachedConfigPath()
-    {
-        return $this->bootstrapPath().'/cache/config.php';
-    }
-
-    /**
-     * Get the path to the cached "compiled.php" file.
-     *
-     * @return string
-     */
-    public function getCachedCompilePath()
-    {
-        return $this->bootstrapPath().'/cache/compiled.php';
-    }
-
-    /**
-     * Get the path to the cached services.php file.
-     *
-     * @return string
-     */
-    public function getCachedServicesPath()
-    {
-        return $this->bootstrapPath().'/cache/services.php';
-    }
-
-    /**
-     * Register a terminating callback with the application.
-     *
-     * @param  \Closure  $callback
-     * @return $this
-     */
-    public function terminating(Closure $callback)
-    {
-        $this->terminatingCallbacks[] = $callback;
-
-        return $this;
-    }
-
-    /**
-     * Terminate the application.
-     *
-     * @return void
-     */
-    public function terminate()
-    {
-        foreach ($this->terminatingCallbacks as $terminating) {
-            $this->call($terminating);
-        }
-    }
-
-    /**
      * Get the service providers that have been loaded.
      *
      * @return array
@@ -622,50 +477,15 @@ class Application extends Container implements ApplicationContracts
     }
 
     /**
-     * Define a callback to be used to configure Monolog.
-     *
-     * @param  callable  $callback
-     * @return $this
-     */
-    public function configureMonologUsing(callable $callback)
-    {
-        $this->monologConfigurator = $callback;
-
-        return $this;
-    }
-
-    /**
-     * Determine if the application has a custom Monolog configurator.
-     *
-     * @return bool
-     */
-    public function hasMonologConfigurator()
-    {
-        return ! is_null($this->monologConfigurator);
-    }
-
-    /**
-     * Get the custom Monolog configurator for the application.
-     *
-     * @return callable
-     */
-    public function getMonologConfigurator()
-    {
-        return $this->monologConfigurator;
-    }
-
-    /**
      * Register the core class aliases in the container.
      *
      * @return void
      */
-    public function registerCoreContainerAliases()
+    protected function registerCoreContainerAliases()
     {
         $aliases = [
-            'app'                  => ['Illuminate\Foundation\Application', 'Illuminate\Contracts\Container\Container', 'Illuminate\Contracts\Foundation\Application'],
-            'config'               => ['Illuminate\Config\Repository', 'Illuminate\Contracts\Config\Repository'],
-            'events'               => ['Illuminate\Events\Dispatcher', 'Illuminate\Contracts\Events\Dispatcher'],
-            'log'                  => ['Illuminate\Log\Writer', 'Illuminate\Contracts\Logging\Log', 'Psr\Log\LoggerInterface'],
+            'app'       => [Application::class, Container::class, ApplicationContracts::class],
+            'events'    => [EventDispatcher::class, Dispatcher::class],
        ];
 
         foreach ($aliases as $key => $aliases) {
@@ -685,31 +505,5 @@ class Application extends Container implements ApplicationContracts
         parent::flush();
 
         $this->loadedProviders = [];
-    }
-
-    /**
-     * Get the application namespace.
-     *
-     * @return string
-     *
-     * @throws \RuntimeException
-     */
-    public function getNamespace()
-    {
-        if (! is_null($this->namespace)) {
-            return $this->namespace;
-        }
-
-        $composer = json_decode(file_get_contents(base_path('composer.json')), true);
-
-        foreach ((array) data_get($composer, 'autoload.psr-4') as $namespace => $path) {
-            foreach ((array) $path as $pathChoice) {
-                if (realpath(app_path()) == realpath(base_path().'/'.$pathChoice)) {
-                    return $this->namespace = $namespace;
-                }
-            }
-        }
-
-        throw new RuntimeException('Unable to detect application namespace.');
     }
 }

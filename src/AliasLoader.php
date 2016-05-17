@@ -155,7 +155,7 @@ class AliasLoader
     /**
      * Set the value of the singleton alias loader.
      *
-     * @param  \Illuminate\Foundation\AliasLoader  $loader
+     * @param  AliasLoader  $loader
      * @return void
      */
     public static function setInstance($loader)

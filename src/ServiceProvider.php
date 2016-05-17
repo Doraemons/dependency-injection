@@ -44,8 +44,7 @@ abstract class ServiceProvider
     /**
      * Create a new service provider instance.
      *
-     * @param  Container  $app
-     * @return void
+     * @param  Application  $app
      */
     public function __construct($app)
     {

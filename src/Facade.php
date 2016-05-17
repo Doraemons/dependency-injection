@@ -11,14 +11,13 @@ namespace Doraemons\DependencyInjection;
 use Mockery;
 use RuntimeException;
 use Mockery\MockInterface;
-use Doraemons\Container\Container;
 
 abstract class Facade
 {
     /**
      * The application instance being facaded.
      *
-     * @var Container
+     * @var Application
      */
     protected static $app;
 
@@ -182,7 +181,7 @@ abstract class Facade
     /**
      * Get the application instance behind the facade.
      *
-     * @return \Illuminate\Contracts\Foundation\Application
+     * @return Application
      */
     public static function getFacadeApplication()
     {
@@ -192,7 +191,7 @@ abstract class Facade
     /**
      * Set the application instance.
      *
-     * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @param  Application  $app
      * @return void
      */
     public static function setFacadeApplication($app)
