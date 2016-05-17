@@ -32,13 +32,6 @@ interface Application
     public function registerDeferredProvider($provider, $service = null);
 
     /**
-     * Boot the application's service providers.
-     *
-     * @return void
-     */
-    public function boot();
-
-    /**
      * Register a new boot listener.
      *
      * @param  mixed  $callback

@@ -8,7 +8,7 @@
 
 namespace Doraemons\DependencyInjection;
 
-use Closure;
+
 use Doraemons\Events\Contracts\Dispatcher;
 use Doraemons\Events\EventDispatcher;
 use Doraemons\Tools\Arr;
@@ -18,13 +18,6 @@ use Doraemons\Events\EventServiceProvider;
 
 class Application extends Container implements ApplicationContracts
 {
-    /**
-     * Indicates if the application has been bootstrapped before.
-     *
-     * @var bool
-     */
-    protected $hasBeenBootstrapped = false;
-
     /**
      * Indicates if the application has "booted".
      *
@@ -69,24 +62,18 @@ class Application extends Container implements ApplicationContracts
 
     /**
      * Create a new application instance.
+     *
+     * @param array $config
      */
-    public function __construct()
+    public function __construct(array $config)
     {
+        $this->registerConfig($config);
+
         $this->registerBaseBindings();
 
-        $this->registerBaseServiceProviders();
-
         $this->registerCoreContainerAliases();
-    }
 
-    /**
-     * Register all of the base service providers.
-     *
-     * @return void
-     */
-    protected function registerBaseServiceProviders()
-    {
-        $this->register(new EventServiceProvider($this));
+        $this->boot();
     }
 
     /**
@@ -99,61 +86,21 @@ class Application extends Container implements ApplicationContracts
         static::setInstance($this);
 
         $this->instance('app', $this);
+        $this->instance('config', Config::class);
 
         $this->instance('Doraemons\DependencyInjection\Container', $this);
     }
 
     /**
-     * Run the given array of bootstrap classes.
+     * Register the basic config into the container.
      *
-     * @param  array  $bootstrappers
-     * @return void
+     * @param array $config
      */
-    public function bootstrapWith(array $bootstrappers)
+    protected function registerConfig(array $config)
     {
-        $this->hasBeenBootstrapped = true;
-
-        foreach ($bootstrappers as $bootstrapper) {
-            $this['events']->fire('bootstrapping: '.$bootstrapper, [$this]);
-
-            $this->make($bootstrapper)->bootstrap($this);
-
-            $this['events']->fire('bootstrapped: '.$bootstrapper, [$this]);
-        }
-    }
-
-    /**
-     * Register a callback to run before a bootstrapper.
-     *
-     * @param  string  $bootstrapper
-     * @param  Closure  $callback
-     * @return void
-     */
-    public function beforeBootstrapping($bootstrapper, Closure $callback)
-    {
-        $this['events']->listen('bootstrapping: '.$bootstrapper, $callback);
-    }
-
-    /**
-     * Register a callback to run after a bootstrapper.
-     *
-     * @param  string  $bootstrapper
-     * @param  Closure  $callback
-     * @return void
-     */
-    public function afterBootstrapping($bootstrapper, Closure $callback)
-    {
-        $this['events']->listen('bootstrapped: '.$bootstrapper, $callback);
-    }
-
-    /**
-     * Determine if the application has been bootstrapped before.
-     *
-     * @return bool
-     */
-    public function hasBeenBootstrapped()
-    {
-        return $this->hasBeenBootstrapped;
+        $this['config'] = function () use ($config) {
+            return new Config($config);
+        };
     }
     
     /**
@@ -232,11 +179,9 @@ class Application extends Container implements ApplicationContracts
      */
     protected function markAsRegistered($provider)
     {
-        $this['events']->fire($class = get_class($provider), [$provider]);
-
         $this->serviceProviders[] = $provider;
 
-        $this->loadedProviders[$class] = true;
+        $this->loadedProviders[get_class($provider)] = true;
     }
 
     /**
@@ -351,7 +296,7 @@ class Application extends Container implements ApplicationContracts
      *
      * @return void
      */
-    public function boot()
+    protected function boot()
     {
         if ($this->booted) {
             return;
@@ -484,8 +429,8 @@ class Application extends Container implements ApplicationContracts
     protected function registerCoreContainerAliases()
     {
         $aliases = [
-            'app'       => [Application::class, Container::class, ApplicationContracts::class],
-            'events'    => [EventDispatcher::class, Dispatcher::class],
+            'app'  => [Application::class, Container::class, ApplicationContracts::class],
+            'config' => [Config::class]
        ];
 
         foreach ($aliases as $key => $aliases) {

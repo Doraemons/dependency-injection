@@ -16,7 +16,7 @@ abstract class ServiceProvider
     /**
      * The application instance.
      *
-     * @var Container
+     * @var Application
      */
     protected $app;
 
@@ -86,16 +86,6 @@ abstract class ServiceProvider
     public function isDeferred()
     {
         return $this->defer;
-    }
-
-    /**
-     * Get a list of files that should be compiled for the package.
-     *
-     * @return array
-     */
-    public static function compiles()
-    {
-        return [];
     }
 
     /**

@@ -9,8 +9,8 @@
   ],
   "require": {
     "php":">=5.5.0",
-    "doraemons/events":"1.*",
-    "doraemons/container": "1.*"
+    "doraemons/container": "1.*",
+    "doraemons/tools":"1.*"
   },
   "require-dev": {
     "symfony/var-dumper":"3.0.*",
@@ -19,11 +19,9 @@
   "autoload": {
     "psr-4" : {
       "Doraemons\\DependencyInjection\\": "src\\"
-    }
-  },
-  "autoload-dev": {
-    "classmap" : [
-      "facade"
+    },
+    "files": [
+      "src/helps.php"
     ]
   },
   "suggest": {},

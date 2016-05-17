@@ -6,7 +6,7 @@
  * Time: 22:02
  */
 
-namespace Doraemons\DependencyInjection;
+namespace Doraemons\DependencyInjection\Facade;
 
 use Mockery;
 use RuntimeException;
