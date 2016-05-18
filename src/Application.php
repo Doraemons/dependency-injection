@@ -61,9 +61,11 @@ class Application extends Container implements ApplicationContracts
      *
      * @param array $config
      */
-    public function __construct(array $config)
+    public function __construct(array $config = array())
     {
-        $this->registerConfig($config);
+        if (! empty($config)) {
+            $this->registerConfig($config);
+        }
 
         $this->registerBaseBindings();
 
@@ -82,7 +84,6 @@ class Application extends Container implements ApplicationContracts
         static::setInstance($this);
 
         $this->instance('app', $this);
-        $this->instance('config', Config::class);
 
         $this->instance('Doraemons\DependencyInjection\Container', $this);
     }
@@ -97,6 +98,10 @@ class Application extends Container implements ApplicationContracts
         $this->singleton('config',function () use ($config) {
             return new Config($config);
         });
+
+        $this->instance('config', Config::class);
+
+        $this->alias('config', Config::class);
     }
     
     /**
@@ -426,7 +431,6 @@ class Application extends Container implements ApplicationContracts
     {
         $aliases = [
             'app'  => [Application::class, Container::class, ApplicationContracts::class],
-            'config' => [Config::class]
        ];
 
         foreach ($aliases as $key => $aliases) {
