@@ -8,13 +8,9 @@
 
 namespace Doraemons\DependencyInjection;
 
-
-use Doraemons\Events\Contracts\Dispatcher;
-use Doraemons\Events\EventDispatcher;
 use Doraemons\Tools\Arr;
 use Doraemons\DependencyInjection\Contracts\Application as ApplicationContracts;
 use Doraemons\Container\Container;
-use Doraemons\Events\EventServiceProvider;
 
 class Application extends Container implements ApplicationContracts
 {
@@ -98,9 +94,9 @@ class Application extends Container implements ApplicationContracts
      */
     protected function registerConfig(array $config)
     {
-        $this['config'] = function () use ($config) {
+        $this->singleton('config',function () use ($config) {
             return new Config($config);
-        };
+        });
     }
     
     /**
