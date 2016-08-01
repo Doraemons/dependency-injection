@@ -18,7 +18,7 @@
 # 安装
 
 ```shell
-composer require doraemons/dependency-injection
+composer require doraemons/dependency-injection@dev-master
 
 ```
 
