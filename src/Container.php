@@ -8,11 +8,13 @@
 
 namespace Doraemons\DependencyInjection;
 
-use Doraemons\Tools\Arr;
-use Doraemons\DependencyInjection\Contracts\Application as ApplicationContracts;
-use Doraemons\Container\Container;
 
-class Application extends Container implements ApplicationContracts
+use Illuminate\Support\Arr;
+use Illuminate\Container\Container as BaseContainer;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Facade;
+
+class Container extends BaseContainer
 {
     /**
      * Indicates if the application has "booted".
@@ -63,15 +65,21 @@ class Application extends Container implements ApplicationContracts
      */
     public function __construct(array $config = array())
     {
-        if (! empty($config)) {
-            $this->registerConfig($config);
-        }
+        $this->registerConfig($config);
 
         $this->registerBaseBindings();
 
         $this->registerCoreContainerAliases();
 
         $this->boot();
+
+        if (isset($config['Providers']) && !empty($config['Providers'])) {
+            $this->registerOrLoadServiceProvider($config['Providers']);
+        }
+
+        if (isset($config['facades']) && !empty($config['facades'])) {
+            $this->registerFacade($config['facades']);
+        }
     }
 
     /**
@@ -85,7 +93,7 @@ class Application extends Container implements ApplicationContracts
 
         $this->instance('app', $this);
 
-        $this->instance('Doraemons\DependencyInjection\Container', $this);
+        $this->instance(BaseContainer::class, $this);
     }
 
     /**
@@ -102,6 +110,41 @@ class Application extends Container implements ApplicationContracts
         $this->instance('config', Config::class);
 
         $this->alias('config', Config::class);
+    }
+
+    /**
+     * @param array $providers
+     */
+    public function registerOrLoadServiceProvider(array $providers)
+    {
+        foreach ($providers as $provider) {
+
+            $instance = is_string($provider)
+                ? $this->resolveProviderClass($provider)
+                : $provider;
+
+            if ($instance->isDeferred()) {
+
+                foreach ($instance->provides() as $instanceProvide) {
+                    $this->addDeferredServices([ $instanceProvide => $provider]);
+                }
+
+            } else {
+                $this->register($provider);
+            }
+
+        }
+    }
+
+    /**
+     * @param array $alias
+     */
+    public function registerFacade(array $alias)
+    {
+        Facade::clearResolvedInstances();
+        Facade::setFacadeApplication($this);
+
+        AliasLoader::getInstance($alias)->register();
     }
     
     /**
@@ -430,7 +473,7 @@ class Application extends Container implements ApplicationContracts
     protected function registerCoreContainerAliases()
     {
         $aliases = [
-            'app'  => [Application::class, Container::class, ApplicationContracts::class],
+            'app'  => [self::class, BaseContainer::class],
        ];
 
         foreach ($aliases as $key => $aliases) {

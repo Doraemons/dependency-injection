@@ -3,32 +3,22 @@
   "license": "MIT",
   "authors": [
     {
-      "name": "xiaohome",
-      "email": "qaz939638621@vip.qq.com"
+      "name": "parkshinhye",
+      "email": "939638621@qq.com"
     }
   ],
   "require": {
-    "php":">=5.5.0",
-    "doraemons/container": "1.*",
-    "doraemons/tools":"1.*"
+    "php":">=5.5.9",
+    "illuminate/container": "~5.0",
+    "illuminate/support": "~5.0"
   },
   "require-dev": {
-    "symfony/var-dumper":"3.0.*",
-    "mockery/mockery":"~0.0"
+    "phpunit/phpunit": "~5.4",
+    "mockery/mockery": "~0.9.4"
   },
   "autoload": {
     "psr-4" : {
       "Doraemons\\DependencyInjection\\": "src\\"
-    },
-    "files": [
-      "src/helps.php"
-    ]
-  },
-  "suggest": {},
-  "repositories": {
-    "packagist": {
-      "type": "composer",
-      "url": "https://packagist.phpcomposer.com"
     }
   }
 }
